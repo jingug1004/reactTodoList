@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useReducer } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import TodoTemplate from "./components/TodoTemplate";
@@ -17,8 +17,28 @@ function createBulkTodos() {
   return array;
 }
 
+function todoReducer(todos, action) {
+  switch (action.type) {
+    case "INSERT":
+      // {type : "INSERT", todo: {id:1, text: 'todo', checked:false}}
+      return todos.concat(action.todo);
+
+    case "REMOVE":
+      // {type : "REMOVE", id: 1}
+      return todos.filter(todo => todo.id !== action.id);
+
+    case "TOGGLE":
+      // {type : "REMOVE", id: 1}
+      return todos.map(todo =>
+        todo.id === action.id ? { ...todo, checked: !todo.checked } : todo);
+
+    default:
+      return todos;
+  }
+}
+
 const App = () => {
-  const [todos, setTodos] = useState(createBulkTodos);
+  const [todos, dispatch] = useReducer(todoReducer, undefined, createBulkTodos);
 
   const nextId = useRef(2501);
 
@@ -30,28 +50,34 @@ const App = () => {
         checked: false
       };
 
-      setTodos(todos.concat(todo));
+      dispatch({ type: "INSERT", todo });
+
+      // setTodos(todos.concat(todo));
+      // setTodos(todos => todos.concat(todo));
       nextId.current += 1;
     },
-    [todos]
+    []
   );
 
   const onRemove = useCallback(
     id => {
-      setTodos(todos.filter(todos => todos.id !== id));
+      // setTodos(todos.filter(todos => todos.id !== id));
+      // setTodos(todos => todos.filter(todos => todos.id !== id));
+      dispatch({ type: "REMOVE", id });
     },
-    [todos]
+    []
   );
 
   const onToggle = useCallback(
     id => {
-      setTodos(
-        todos.map(todo =>
-          todo.id === id ? { ...todo, checked: !todo.checked } : todo
-        )
-      );
+      // setTodos(
+      //   todos.map(todo =>
+      //     todo.id === id ? { ...todo, checked: !todo.checked } : todo
+      //   )
+      // );
+      dispatch({ type: "TOGGLE", id });
     },
-    [todos]
+    []
   );
 
   return (
